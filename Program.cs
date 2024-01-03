@@ -56,23 +56,15 @@ namespace testDebugging
         }
     
         public static void testFunction(IOrganizationService service)
-        {
-           // DateTime startDate = new DateTime(2023, 10, 17, 10, 0, 0);
-           // DateTime endDate = new DateTime(2023, 10, 26, 14, 0, 0);
-            
+        { 
             //get task record
             Guid entityId = new Guid("7cdbf4fa-ff89-ee11-9991-0022488b2ff9");
-            //95ff752a-4289-ee11-998f-0022488b2ff9
-
+          
             //Task Entity
             Entity task = service.Retrieve("task", entityId, new ColumnSet(true));
             var TaskCreatedonDate = task.GetAttributeValue<DateTime>("createdon");
             Console.WriteLine($"Task createdon:  {TaskCreatedonDate}");
-            #region Print
-            //Console.WriteLine($"\n\t\tTask Entity\n");
-            //foreach (var x in task.Attributes)
-            //    Console.WriteLine("Key: {0}, \t\tValue: {1}", x.Key, x.Value); 
-            #endregion
+          
             //slaskpiInstance  //first response by kpi  //lookup
             EntityReference slakpiInstance = task.GetAttributeValue<EntityReference>("ldv_firstresponsebykpi"); //lookup
 
@@ -81,20 +73,12 @@ namespace testDebugging
             var SLAKPISucceeded = slakpi.GetAttributeValue<DateTime>("succeededon");
             Console.WriteLine($"SLASucceeded on:  {SLAKPISucceeded}");
 
-
-            #region printing
-            //Console.WriteLine("\n\t\tSLAKPIInstance\n");
-            //foreach (var x in slakpi.Attributes)
-            //    Console.WriteLine("Key: {0}, \t\tValue: {1}", x.Key, x.Value); 
-            #endregion
-
             //SLA   //lookup
             EntityReference slaRef = task.GetAttributeValue<EntityReference>("slaid");
 
             //SLA  //Entity
             Entity sla = service.Retrieve(slaRef.LogicalName, slaRef.Id, new ColumnSet(true));
 
-            
             //Calendar
             EntityReference businessHoursRef = sla.GetAttributeValue<EntityReference>("businesshoursid"); //default calendar lookup
            
@@ -138,18 +122,6 @@ namespace testDebugging
                 var holidaysCalendarEntity = businessCalendarObject.GetAttributeValue<EntityReference>("holidayschedulecalendarid");
                 Entity Holiday = service.Retrieve(holidaysCalendarEntity.LogicalName, holidaysCalendarEntity.Id, new ColumnSet(true));
 
-                // get calendar rules //21 att
-                // var calendarRules2 = Holiday.GetAttributeValue<EntityCollection>("calendarrules");
-
-                #region print
-                //Console.WriteLine($"\nHoliday\n");
-                //foreach (var temp in finalVacationList.OrderBy(x => x.Date).ToList())
-                //{
-                //    Console.WriteLine(temp);
-                //} 
-                #endregion
-
-
                 //calendarrule Entities[0]
                 var calendarRules = businessCalendarObject.GetAttributeValue<EntityCollection>("calendarrules");
                 #region Printing
@@ -164,22 +136,7 @@ namespace testDebugging
 
                 // Retrieve the inner calendar with all of its columns //calendar Entity //12 att
                 var innerCalendar = service.Retrieve("calendar", innerCalendarId, new ColumnSet(true));
-                #region printing
-                //Console.WriteLine("\n\t\tCalendar\n");
-                //foreach (var x in innerCalendar.Attributes)
-                //    Console.WriteLine("Key: {0}, \t\tValue: {1}", x.Key, x.Value); 
-                #endregion
-
-                #region toBeSeen
-                //Calendar rule Entity //16 att // Get the first inner calendar rule
-                // var innnerCalendarRule = innerCalendar.GetAttributeValue<EntityCollection>("calendarrules").Entities.FirstOrDefault();
-
-                #endregion
-                #region printing
-                //Console.WriteLine("\n\t\tCalendarrule\n");
-                //foreach (var x in innnerCalendarRule.Attributes)
-                //    Console.WriteLine("Key: {0}, \t\tValue: {1}", x.Key, x.Value);
-                #endregion
+             
                 if (businessCalendarObject != null && businessCalendarObject.Id != Guid.Empty)
                 {
                     // Get the first inner calendar rule 
@@ -199,11 +156,8 @@ namespace testDebugging
 
                 //Get The Total Duration
                 Duration = GetFinalDuration(TaskCreatedonDate, SLAKPISucceeded, workingDaysPatternList, vacationList);
-                //     Duration = GetFinalDuration(startDate, endDate, workingDaysPatternList, vacationList);
 
                 Console.WriteLine($"\n\tDuraion in Hours =  {Duration}\n");
-
-               // throw new Exception("End of code");
             }
             Console.WriteLine("Final Duration = "+Duration);
         }
@@ -328,7 +282,6 @@ namespace testDebugging
             #endregion
             //tracingService.Trace("7- Finished");
             return Duration;
-        //    return durationInHours;
         }
         public static List<DateTime> GetVacations(Entity businessCalendarObject, IOrganizationService OrganizationService)
         {
@@ -356,13 +309,7 @@ namespace testDebugging
                         var startDate = (DateTime)calenderRule.Attributes["effectiveintervalstart"];
                         var endDate = (DateTime)calenderRule.Attributes["effectiveintervalend"];
 
-                        // prepare the list of the vacation based on:
-                        // 1- Total number of days between startDate and endDate "(endDate - startDate).Days"
-                        // 2- Add total to the startDate "startDate.AddDays(d)" to generate the rest of the days
-
-                        // i.e. Start 1/1(Jan)/2020 and End 3/1(Jan)/2020
-                        // then, total days = (End - Start).Days + 1 = 3
-                        // list will contains [1/1, 1/2, 1/3]
+            
                         vacationList = Enumerable.Range(0, (endDate - startDate).Days).Select(d => startDate.AddDays(d)).ToList();
 
                         finalVacationList.AddRange(vacationList);
